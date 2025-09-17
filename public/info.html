@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistik Kuis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+
+        .gradient-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .gradient-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .gradient-error {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .gradient-warning {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+
+        .stats-card {
+            transition: all 0.3s ease;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .tab-active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .level-badge {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .level-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .level-badge:hover::before {
+            left: 100%;
+        }
+         /* Styling untuk navbar bottom */
+        .navbar-bottom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Animasi untuk tombol aktif */
+        .nav-item.active {
+            color: #3b82f6;
+        }
+        
+        .nav-item:hover {
+            color: #3b82f6;
+            transform: translateY(-2px);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding-bottom: 80px; /* Space for bottom navbar */
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <!-- Header -->
+         <header class="bg-white/90 backdrop-blur-sm shadow-lg sticky top-0 z-50 md:hidden block">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 gradient-card rounded-full flex items-center justify-center">
+                        <span class="text-white text-lg font-bold">📊</span>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">Statistik Kuis</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Navbar Bottom untuk  -->
+    <nav class="navbar-bottom fixed bottom-0 left-0 right-0 z-50 md:hidden block border-t border-gray-200">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-around py-2">
+                
+                <!-- Export -->
+                <button id="exportBtn" class="nav-item flex flex-col items-center p-2 text-gray-600 transition-all duration-200">
+                    <span class="text-xl mb-1">📁</span>
+                    <span class="text-xs font-medium">Export</span>
+                </button>
+                
+                <!-- Hapus Data -->
+                <button id="clearBtn" class="nav-item flex flex-col items-center p-2 text-gray-600 transition-all duration-200">
+                    <span class="text-xl mb-1">🗑️</span>
+                    <span class="text-xs font-medium">Hapus</span>
+                </button>
+                
+                <!-- Main Lagi -->
+                <button onclick="window.location.href='/'" class="nav-item flex flex-col items-center p-2 text-gray-600 transition-all duration-200">
+                    <span class="text-xl mb-1">🎮</span>
+                    <span class="text-xs font-medium">Main</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-6">
+        <!-- Loading State -->
+        <div id="loadingState" class="flex justify-center items-center h-64">
+            <div class="text-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                <p class="text-gray-600">Memuat statistik...</p>
+            </div>
+        </div>
+
+        <!-- No Data State -->
+        <div id="noDataState" class="hidden text-center py-16">
+            <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span class="text-4xl">📈</span>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Belum Ada Data</h3>
+            <p class="text-gray-600 mb-6">Mulai bermain kuis untuk melihat statistik Anda</p>
+            <button onclick="window.location.href='/'" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors duration-200">
+                Mulai Bermain
+            </button>
+        </div>
+
+        <!-- Main Content -->
+        <div id="mainContent" class="hidden">
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="stats-card bg-white rounded-xl p-6 shadow-lg fade-in-up">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm">Total Permainan</p>
+                            <p id="totalGames" class="text-3xl font-bold text-gray-800">0</p>
+                        </div>
+                        <div class="w-12 h-12 gradient-success rounded-full flex items-center justify-center">
+                            <span class="text-white text-xl">🎮</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-card bg-white rounded-xl p-6 shadow-lg fade-in-up" style="animation-delay: 0.1s">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm">Rata-rata Skor</p>
+                            <p id="avgScore" class="text-3xl font-bold text-gray-800">0%</p>
+                        </div>
+                        <div class="w-12 h-12 gradient-card rounded-full flex items-center justify-center">
+                            <span class="text-white text-xl">📊</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-card bg-white rounded-xl p-6 shadow-lg fade-in-up" style="animation-delay: 0.2s">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm">Level Tertinggi</p>
+                            <p id="maxLevel" class="text-3xl font-bold text-gray-800">0</p>
+                        </div>
+                        <div class="w-12 h-12 gradient-warning rounded-full flex items-center justify-center">
+                            <span class="text-white text-xl">🏆</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-card bg-white rounded-xl p-6 shadow-lg fade-in-up" style="animation-delay: 0.3s">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm">Jawaban Benar</p>
+                            <p id="correctAnswers" class="text-3xl font-bold text-gray-800">0</p>
+                        </div>
+                        <div class="w-12 h-12 gradient-success rounded-full flex items-center justify-center">
+                            <span class="text-white text-xl">✅</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white rounded-xl p-6 shadow-lg fade-in-up" style="animation-delay: 0.4s">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Performa per Level</h3>
+                    <div class="chart-container">
+                        <canvas id="levelChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl p-6 shadow-lg fade-in-up" style="animation-delay: 0.5s">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Tren Skor</h3>
+                    <div class="chart-container">
+                        <canvas id="scoreChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="bg-white rounded-xl shadow-lg fade-in-up" style="animation-delay: 0.6s">
+                <div class="border-b">
+                    <nav class="flex space-x-8 px-6">
+                        <button class="tab-btn py-4 px-2 border-b-2 border-transparent font-medium text-sm tab-active" data-tab="recent">
+                            Permainan Terbaru
+                        </button>
+                        <button class="tab-btn py-4 px-2 border-b-2 border-transparent font-medium text-sm hover:text-gray-700" data-tab="detailed">
+                            Detail per Soal
+                        </button>
+                        <button class="tab-btn py-4 px-2 border-b-2 border-transparent font-medium text-sm hover:text-gray-700" data-tab="achievements">
+                            Pencapaian
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="p-6">
+                    <!-- Recent Games Tab -->
+                    <div id="recentTab" class="tab-content">
+                        <div id="recentGamesContainer" class="space-y-4 custom-scrollbar max-h-96 overflow-y-auto">
+                            <!-- Content will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Detailed Tab -->
+                    <div id="detailedTab" class="tab-content hidden">
+                        <div class="mb-4">
+                            <select id="levelFilter" class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option value="all">Semua Level</option>
+                            </select>
+                        </div>
+                        <div id="detailedContainer" class="space-y-4 custom-scrollbar max-h-96 overflow-y-auto">
+                            <!-- Content will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Achievements Tab -->
+                    <div id="achievementsTab" class="tab-content hidden">
+                        <div id="achievementsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <!-- Content will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+ <script>
+            class QuizStatistics {
+            constructor() {
+                this.data = this.loadData();
+                this.charts = {};
+                this.init();
+            }
+
+            init() {
+                this.showLoading();
+                setTimeout(() => {
+                    if (this.data.length === 0) {
+                        this.showNoData();
+                    } else {
+                        this.showMainContent();
+                        this.renderSummaryCards();
+                        this.renderCharts();
+                        this.renderTabs();
+                        this.setupEventListeners();
+                    }
+                }, 1000);
+            }
+
+            loadData() {
+                const data = localStorage.getItem('quizStatistics');
+                return data ? JSON.parse(data) : [];
+            }
+
+            saveData() {
+                localStorage.setItem('quizStatistics', JSON.stringify(this.data));
+            }
+
+            addGameResult(gameData) {
+                const gameResult = {
+                    id: Date.now(),
+                    timestamp: new Date().toISOString(),
+                    level: gameData.level,
+                    totalQuestions: gameData.totalQuestions,
+                    correctAnswers: gameData.correctAnswers,
+                    score: gameData.score,
+                    timeTaken: gameData.timeTaken || 0,
+                    details: gameData.details || []
+                };
+                this.data.unshift(gameResult);
+                this.saveData();
+            }
+
+            showLoading() {
+                document.getElementById('loadingState').classList.remove('hidden');
+                document.getElementById('noDataState').classList.add('hidden');
+                document.getElementById('mainContent').classList.add('hidden');
+            }
+
+            showNoData() {
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('noDataState').classList.remove('hidden');
+                document.getElementById('mainContent').classList.add('hidden');
+            }
+
+            showMainContent() {
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('noDataState').classList.add('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
+            }
+
+            renderSummaryCards() {
+                const totalGames = this.data.length;
+                const avgScore = totalGames > 0 ? this.data.reduce((sum, game) => sum + game.score, 0) / totalGames : 0;
+                const maxLevel = Math.max(...this.data.map(game => game.level), 0);
+                const totalCorrect = this.data.reduce((sum, game) => sum + game.correctAnswers, 0);
+
+                document.getElementById('totalGames').textContent = totalGames;
+                document.getElementById('avgScore').textContent = `${avgScore.toFixed(1)}%`;
+                document.getElementById('maxLevel').textContent = maxLevel;
+                document.getElementById('correctAnswers').textContent = totalCorrect;
+            }
+
+            renderCharts() {
+                this.renderLevelChart();
+                this.renderScoreChart();
+            }
+
+            renderLevelChart() {
+                const ctx = document.getElementById('levelChart').getContext('2d');
+                const levelData = {};
+                
+                this.data.forEach(game => {
+                    if (!levelData[game.level]) {
+                        levelData[game.level] = { total: 0, correct: 0 };
+                    }
+                    levelData[game.level].total += game.totalQuestions;
+                    levelData[game.level].correct += game.correctAnswers;
+                });
+
+                const levels = Object.keys(levelData).sort((a, b) => parseInt(a) - parseInt(b));
+                const accuracyData = levels.map(level => {
+                    const data = levelData[level];
+                    return data.total > 0 ? (data.correct / data.total) * 100 : 0;
+                });
+
+                this.charts.levelChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: levels.map(level => `Level ${level}`),
+                        datasets: [{
+                            label: 'Akurasi (%)',
+                            data: accuracyData,
+                            backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            renderScoreChart() {
+                const ctx = document.getElementById('scoreChart').getContext('2d');
+                const recentGames = this.data.slice(0, 10).reverse();
+
+                this.charts.scoreChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: recentGames.map((_, index) => `Game ${index + 1}`),
+                        datasets: [{
+                            label: 'Skor (%)',
+                            data: recentGames.map(game => game.score),
+                            borderColor: 'rgba(79, 172, 254, 1)',
+                            backgroundColor: 'rgba(79, 172, 254, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: 'rgba(79, 172, 254, 1)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            renderTabs() {
+                this.renderRecentGames();
+                this.renderDetailedView();
+                this.renderAchievements();
+            }
+
+            renderRecentGames() {
+                const container = document.getElementById('recentGamesContainer');
+                const recentGames = this.data.slice(0, 20);
+
+                container.innerHTML = recentGames.map(game => {
+                    const date = new Date(game.timestamp).toLocaleString('id-ID');
+                    const scoreColor = game.score >= 80 ? 'text-green-600' : game.score >= 60 ? 'text-yellow-600' : 'text-red-600';
+                    
+                    return `
+                        <div class="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-4">
+                                    <div class="level-badge bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                        Level ${game.level}
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800">${game.correctAnswers}/${game.totalQuestions} benar</p>
+                                        <p class="text-sm text-gray-600">${date}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-2xl font-bold ${scoreColor}">${game.score.toFixed(0)}%</p>
+                                    <div class="flex items-center space-x-1">
+                                        ${this.getScoreStars(game.score)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            renderDetailedView() {
+                const levelFilter = document.getElementById('levelFilter');
+                const container = document.getElementById('detailedContainer');
+
+                // Populate level filter
+                const levels = [...new Set(this.data.map(game => game.level))].sort((a, b) => a - b);
+                levelFilter.innerHTML = '<option value="all">Semua Level</option>' + 
+                    levels.map(level => `<option value="${level}">Level ${level}</option>`).join('');
+
+                this.updateDetailedView();
+
+                levelFilter.addEventListener('change', () => {
+                    this.updateDetailedView();
+                });
+            }
+
+            updateDetailedView() {
+                const levelFilter = document.getElementById('levelFilter');
+                const container = document.getElementById('detailedContainer');
+                const selectedLevel = levelFilter.value;
+
+                let filteredData = this.data;
+                if (selectedLevel !== 'all') {
+                    filteredData = this.data.filter(game => game.level == selectedLevel);
+                }
+
+                const detailedQuestions = [];
+                filteredData.forEach(game => {
+                    if (game.details && game.details.length > 0) {
+                        game.details.forEach((detail, index) => {
+                            detailedQuestions.push({
+                                ...detail,
+                                gameId: game.id,
+                                level: game.level,
+                                questionNumber: index + 1,
+                                timestamp: game.timestamp
+                            });
+                        });
+                    }
+                });
+
+                container.innerHTML = detailedQuestions.map(question => {
+                    const isCorrect = question.isCorrect;
+                    const statusColor = isCorrect ? 'text-green-600' : 'text-red-600';
+                    const statusIcon = isCorrect ? '✅' : '❌';
+                    const date = new Date(question.timestamp).toLocaleDateString('id-ID');
+
+                    return `
+                        <div class="border rounded-lg p-4 ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-lg">${statusIcon}</span>
+                                    <span class="font-medium text-gray-800">Level ${question.level} - Soal ${question.questionNumber}</span>
+                                    <span class="text-sm text-gray-500">${date}</span>
+                                </div>
+                                <span class="text-sm font-medium ${statusColor}">
+                                    ${isCorrect ? 'BENAR' : 'SALAH'}
+                                </span>
+                            </div>
+                            <div class="space-y-2 text-sm">
+                                <div>
+                                    <span class="font-medium text-gray-700">Jawaban Anda:</span>
+                                    <p class="text-gray-600 mt-1">${question.userAnswer}</p>
+                                </div>
+                                ${!isCorrect ? `
+                                    <div>
+                                        <span class="font-medium text-gray-700">Jawaban yang Benar:</span>
+                                        <p class="text-green-600 mt-1">${question.correctAnswer}</p>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            renderAchievements() {
+                const container = document.getElementById('achievementsContainer');
+                const achievements = this.calculateAchievements();
+
+                container.innerHTML = achievements.map(achievement => `
+                    <div class="achievement-card bg-gradient-to-br ${achievement.gradient} p-6 rounded-xl text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-3xl">${achievement.icon}</span>
+                            <span class="text-sm opacity-80">${achievement.unlocked ? 'Terbuka' : 'Terkunci'}</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2">${achievement.title}</h3>
+                        <p class="text-sm opacity-90 mb-3">${achievement.description}</p>
+                        <div class="w-full bg-white/20 rounded-full h-2">
+                            <div class="bg-white rounded-full h-2 transition-all duration-500" style="width: ${achievement.progress}%"></div>
+                        </div>
+                        <p class="text-xs mt-2 opacity-80">${achievement.progressText}</p>
+                    </div>
+                `).join('');
+            }
+
+            calculateAchievements() {
+                const totalGames = this.data.length;
+                const perfectGames = this.data.filter(game => game.score === 100).length;
+                const maxLevel = Math.max(...this.data.map(game => game.level), 0);
+                const totalCorrect = this.data.reduce((sum, game) => sum + game.correctAnswers, 0);
+                const avgScore = totalGames > 0 ? this.data.reduce((sum, game) => sum + game.score, 0) / totalGames : 0;
+
+                return [
+                    {
+                        title: 'Pemula',
+                        description: 'Selesaikan permainan pertama Anda',
+                        icon: '🌟',
+                        gradient: 'from-blue-500 to-blue-600',
+                        unlocked: totalGames >= 1,
+                        progress: Math.min(totalGames / 1 * 100, 100),
+                        progressText: `${totalGames}/1 permainan`
+                    },
+                    {
+                        title: 'Konsisten',
+                        description: 'Mainkan 10 kali',
+                        icon: '🎯',
+                        gradient: 'from-green-500 to-green-600',
+                        unlocked: totalGames >= 10,
+                        progress: Math.min(totalGames / 10 * 100, 100),
+                        progressText: `${totalGames}/10 permainan`
+                    },
+                    {
+                        title: 'Sempurna',
+                        description: 'Dapatkan skor 100% sebanyak 5 kali',
+                        icon: '💎',
+                        gradient: 'from-purple-500 to-purple-600',
+                        unlocked: perfectGames >= 5,
+                        progress: Math.min(perfectGames / 5 * 100, 100),
+                        progressText: `${perfectGames}/5 skor sempurna`
+                    },
+                    {
+                        title: 'Penjelajah',
+                        description: 'Capai Level 5',
+                        icon: '🚀',
+                        gradient: 'from-orange-500 to-orange-600',
+                        unlocked: maxLevel >= 5,
+                        progress: Math.min(maxLevel / 5 * 100, 100),
+                        progressText: `Level ${maxLevel}/5`
+                    },
+                    {
+                        title: 'Ahli',
+                        description: 'Pertahankan rata-rata skor 80%+',
+                        icon: '🏆',
+                        gradient: 'from-yellow-500 to-yellow-600',
+                        unlocked: avgScore >= 80,
+                        progress: Math.min(avgScore / 80 * 100, 100),
+                        progressText: `${avgScore.toFixed(1)}%/80% rata-rata`
+                    },
+                    {
+                        title: 'Kolektor',
+                        description: 'Jawab 100 soal dengan benar',
+                        icon: '📚',
+                        gradient: 'from-indigo-500 to-indigo-600',
+                        unlocked: totalCorrect >= 100,
+                        progress: Math.min(totalCorrect / 100 * 100, 100),
+                        progressText: `${totalCorrect}/100 jawaban benar`
+                    }
+                ];
+            }
+
+            getScoreStars(score) {
+                const stars = Math.floor(score / 20);
+                return '⭐'.repeat(stars) + '☆'.repeat(5 - stars);
+            }
+
+            setupEventListeners() {
+                // Tab switching
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const tabName = btn.dataset.tab;
+                        this.switchTab(tabName);
+                    });
+                });
+
+                // Clear data
+                document.getElementById('clearBtn').addEventListener('click', () => {
+                    Swal.fire({
+                        title: 'Hapus Semua Data?',
+                        text: 'Tindakan ini tidak dapat dibatalkan!',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Ya, Hapus!',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            localStorage.removeItem('quizStatistics');
+                            location.reload();
+                        }
+                    });
+                });
+
+                // Export data
+                document.getElementById('exportBtn').addEventListener('click', () => {
+                    this.exportData();
+                });
+            }
+
+            switchTab(tabName) {
+                // Update tab buttons
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('tab-active');
+                    btn.classList.add('hover:text-gray-700');
+                });
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('tab-active');
+                document.querySelector(`[data-tab="${tabName}"]`).classList.remove('hover:text-gray-700');
+
+                // Show/hide tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                });
+                document.getElementById(`${tabName}Tab`).classList.remove('hidden');
+            }
+
+            exportData() {
+    // Tampilkan loading
+    Swal.fire({
+        title: 'Membuat PDF...',
+        text: 'Sedang memproses laporan statistik',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    // Gunakan html2canvas untuk capture visual yang lebih baik dengan karakter Jepang
+    this.generateHTMLToPDF();
+}
+
+async generateHTMLToPDF() {
+    try {
+        // Load html2canvas dan jsPDF
+        await Promise.all([
+            new Promise((resolve, reject) => {
+                if (window.html2canvas) {
+                    resolve();
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            }),
+            new Promise((resolve, reject) => {
+                if (window.jspdf) {
+                    resolve();
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            })
+        ]);
+
+        // Buat HTML report
+        const reportHTML = this.createReportHTML();
+        
+        // Inject ke DOM sementara
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = reportHTML;
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        tempDiv.style.top = '0';
+        tempDiv.style.width = '210mm';
+        tempDiv.style.fontFamily = '"Noto Sans JP", "Yu Gothic", "Hiragino Sans", "MS Gothic", sans-serif';
+        document.body.appendChild(tempDiv);
+        
+        const reportElement = tempDiv.querySelector('#pdfReport');
+        
+        // Capture dengan html2canvas
+        const canvas = await html2canvas(reportElement, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            width: reportElement.offsetWidth,
+            height: reportElement.offsetHeight
+        });
+        
+        // Buat PDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        
+        const imgWidth = 210;
+        const pageHeight = 297;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+        
+        // Tambahkan gambar ke PDF
+        const imgData = canvas.toDataURL('image/png');
+        doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+        
+        // Tambah halaman jika perlu
+        while (heightLeft >= 0) {
+            position = heightLeft - imgHeight;
+            doc.addPage();
+            doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+        
+        // Clean up
+        document.body.removeChild(tempDiv);
+        
+        // Save PDF
+        const fileName = `Laporan-Statistik-Kuis-${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(fileName);
+        
+        // Success notification
+        Swal.fire({
+            title: 'Berhasil!',
+            text: 'Laporan statistik telah diekspor sebagai PDF',
+            icon: 'success',
+            timer: 3000,
+            showConfirmButton: false
+        });
+        
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        Swal.fire({
+            title: 'Error!',
+            text: 'Terjadi kesalahan saat membuat PDF: ' + error.message,
+            icon: 'error'
+        });
+    }
+}
+
+createReportHTML() {
+    // Hitung statistik
+    const totalGames = this.data.length;
+    const avgScore = totalGames > 0 ? this.data.reduce((sum, game) => sum + game.score, 0) / totalGames : 0;
+    const maxLevel = Math.max(...this.data.map(game => game.level), 0);
+    const totalCorrect = this.data.reduce((sum, game) => sum + game.correctAnswers, 0);
+    const totalQuestions = this.data.reduce((sum, game) => sum + game.totalQuestions, 0);
+    
+    // Siapkan data per level
+    const levels = [...new Set(this.data.map(game => game.level))].sort((a, b) => a - b);
+    const levelData = {};
+    
+    levels.forEach(level => {
+        levelData[level] = [];
+        this.data.forEach(game => {
+            if (game.level == level && game.details) {
+                game.details.forEach((detail, index) => {
+                    levelData[level].push({
+                        ...detail,
+                        questionNumber: index + 1,
+                        gameDate: new Date(game.timestamp).toLocaleDateString('id-ID')
+                    });
+                });
+            }
+        });
+    });
+
+    return `
+        <div id="pdfReport" style="width: 210mm; background: white; font-family: 'Noto Sans JP', 'Yu Gothic', 'Hiragino Sans', 'MS Gothic', sans-serif; padding: 20mm; box-sizing: border-box;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #4f46e5, #6366f1); color: white; padding: 30px; margin: -20mm -20mm 30px -20mm; text-align: center;">
+                <h1 style="font-size: 32px; margin: 0 0 10px 0; font-weight: bold;">LAPORAN STATISTIK KUIS</h1>
+                <p style="font-size: 16px; margin: 0 0 10px 0;">Dicetak pada: ${new Date().toLocaleString('id-ID')}</p>
+                <p style="font-size: 14px; margin: 0;">${totalGames} permainan • Level tertinggi: ${maxLevel} • Akurasi: ${totalQuestions > 0 ? (totalCorrect/totalQuestions*100).toFixed(1) : 0}%</p>
+            </div>
+
+            <!-- Summary -->
+            <div style="margin-bottom: 40px;">
+                <h2 style="font-size: 24px; color: #1e293b; margin-bottom: 20px; font-weight: bold;">RINGKASAN STATISTIK</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="border: 3px solid #6366f1; border-radius: 12px; padding: 20px; background: #f8fafc;">
+                        <div style="font-size: 16px; color: #64748b; margin-bottom: 8px;">Total Permainan</div>
+                        <div style="font-size: 28px; font-weight: bold; color: #6366f1;">${totalGames}</div>
+                    </div>
+                    <div style="border: 3px solid #10b981; border-radius: 12px; padding: 20px; background: #f0fdf4;">
+                        <div style="font-size: 16px; color: #64748b; margin-bottom: 8px;">Rata-rata Skor</div>
+                        <div style="font-size: 28px; font-weight: bold; color: #10b981;">${avgScore.toFixed(1)}%</div>
+                    </div>
+                    <div style="border: 3px solid #f59e0b; border-radius: 12px; padding: 20px; background: #fffbeb;">
+                        <div style="font-size: 16px; color: #64748b; margin-bottom: 8px;">Level Tertinggi</div>
+                        <div style="font-size: 28px; font-weight: bold; color: #f59e0b;">${maxLevel}</div>
+                    </div>
+                    <div style="border: 3px solid #ef4444; border-radius: 12px; padding: 20px; background: #fef2f2;">
+                        <div style="font-size: 16px; color: #64748b; margin-bottom: 8px;">Total Jawaban Benar</div>
+                        <div style="font-size: 28px; font-weight: bold; color: #ef4444;">${totalCorrect}/${totalQuestions}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail per level -->
+            ${levels.map(level => {
+                const levelQuestions = levelData[level];
+                const levelCorrect = levelQuestions.filter(q => q.isCorrect).length;
+                const levelTotal = levelQuestions.length;
+                const levelAccuracy = levelTotal > 0 ? (levelCorrect / levelTotal * 100).toFixed(1) : '0';
+                
+                return `
+                    <div style="margin-bottom: 40px; page-break-inside: avoid;">
+                        <div style="background: #4f46e5; color: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="font-size: 20px; margin: 0; font-weight: bold;">LEVEL ${level}</h3>
+                            <span style="font-size: 14px;">${levelCorrect}/${levelTotal} benar (${levelAccuracy}%)</span>
+                        </div>
+                        
+                        ${levelQuestions.map(question => `
+                            <div style="border: 2px solid ${question.isCorrect ? '#22c55e' : '#ef4444'}; border-radius: 10px; padding: 20px; margin-bottom: 15px; background: ${question.isCorrect ? '#f0fdf4' : '#fef2f2'}; page-break-inside: avoid;">
+                                <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                    <span style="font-size: 18px; margin-right: 10px;">${question.isCorrect ? '✓' : '✗'}</span>
+                                    <span style="font-size: 16px; font-weight: bold; color: #1e293b;">Soal #${question.questionNumber}</span>
+                                    <span style="font-size: 12px; color: #64748b; margin-left: auto;">${question.gameDate}</span>
+                                </div>
+                                
+                                <div style="margin-bottom: ${question.isCorrect ? '0' : '15px'};">
+                                    <strong style="font-size: 14px; color: #374151;">Jawaban Anda:</strong>
+                                    <div style="font-size: 14px; color: #1f2937; margin-top: 5px; word-wrap: break-word; line-height: 1.5; font-family: 'Noto Sans JP', 'Yu Gothic', 'Hiragino Sans', 'MS Gothic', monospace;">${question.userAnswer}</div>
+                                </div>
+                                
+                                ${!question.isCorrect ? `
+                                    <div>
+                                        <strong style="font-size: 14px; color: #22c55e;">Jawaban Benar:</strong>
+                                        <div style="font-size: 14px; color: #166534; margin-top: 5px; word-wrap: break-word; line-height: 1.5; font-family: 'Noto Sans JP', 'Yu Gothic', 'Hiragino Sans', 'MS Gothic', monospace;">${question.correctAnswer}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }).join('')}
+
+            <!-- Footer -->
+            <div style="border-top: 2px solid #e2e8f0; padding-top: 20px; text-align: center; color: #64748b; font-size: 12px;">
+                <p>Quiz App © ${new Date().getFullYear()} • Laporan dibuat secara otomatis</p>
+            </div>
+        </div>
+    `;
+}
+
+async generatePDFReport() {
+    try {
+        // Load jsPDF library jika belum ada
+        if (!window.jspdf) {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        
+        // Fungsi untuk menampilkan teks Jepang dengan fallback
+        function addJapaneseText(doc, text, x, y, fontSize = 12, maxWidth = null) {
+            doc.setFontSize(fontSize);
+            
+            // Coba gunakan font yang support Unicode
+            try {
+                // Set font yang lebih universal untuk karakter Jepang
+                doc.setFont('helvetica', 'normal');
+                
+                if (maxWidth) {
+                    const lines = doc.splitTextToSize(text, maxWidth);
+                    doc.text(lines, x, y);
+                    return y + (lines.length * (fontSize * 0.4));
+                } else {
+                    doc.text(text, x, y);
+                    return y + (fontSize * 0.4);
+                }
+            } catch (error) {
+                // Fallback: gunakan encoding yang lebih baik
+                const encodedText = unescape(encodeURIComponent(text));
+                if (maxWidth) {
+                    const lines = doc.splitTextToSize(encodedText, maxWidth);
+                    doc.text(lines, x, y);
+                    return y + (lines.length * (fontSize * 0.4));
+                } else {
+                    doc.text(encodedText, x, y);
+                    return y + (fontSize * 0.4);
+                }
+            }
+        }
+        
+        // Hitung statistik dasar
+        const totalGames = this.data.length;
+        const avgScore = totalGames > 0 ? this.data.reduce((sum, game) => sum + game.score, 0) / totalGames : 0;
+        const maxLevel = Math.max(...this.data.map(game => game.level), 0);
+        const totalCorrect = this.data.reduce((sum, game) => sum + game.correctAnswers, 0);
+        const totalQuestions = this.data.reduce((sum, game) => sum + game.totalQuestions, 0);
+        
+        // Siapkan data per level
+        const levels = [...new Set(this.data.map(game => game.level))].sort((a, b) => a - b);
+        const levelData = {};
+        
+        levels.forEach(level => {
+            levelData[level] = [];
+            this.data.forEach(game => {
+                if (game.level == level && game.details) {
+                    game.details.forEach((detail, index) => {
+                        levelData[level].push({
+                            ...detail,
+                            questionNumber: index + 1,
+                            gameDate: new Date(game.timestamp).toLocaleDateString('id-ID')
+                        });
+                    });
+                }
+            });
+        });
+        
+        let yPosition = 20;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 20;
+        const contentWidth = pageWidth - (margin * 2);
+        
+        // Helper function untuk menambah halaman baru jika diperlukan
+        function checkPageBreak(doc, yPos, requiredHeight) {
+            if (yPos + requiredHeight > pageHeight - 20) {
+                doc.addPage();
+                return 20;
+            }
+            return yPos;
+        }
+        
+        // Helper function untuk text wrapping
+        function addWrappedText(doc, text, x, y, maxWidth, fontSize = 12) {
+            doc.setFontSize(fontSize);
+            const lines = doc.splitTextToSize(text, maxWidth);
+            doc.text(lines, x, y);
+            return y + (lines.length * (fontSize * 0.4));
+        }
+        
+        // ========== HEADER ==========
+        // Background header (simulasi dengan rectangle)
+        doc.setFillColor(79, 70, 229);
+        doc.rect(0, 0, pageWidth, 45, 'F');
+        
+        // Judul utama
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(28);
+        doc.setFont('helvetica', 'bold');
+        doc.text('LAPORAN STATISTIK KUIS', pageWidth/2, 20, { align: 'center' });
+        
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, pageWidth/2, 30, { align: 'center' });
+        
+        doc.setFontSize(12);
+        doc.text(`${totalGames} permainan • Level tertinggi: ${maxLevel} • Akurasi: ${totalQuestions > 0 ? (totalCorrect/totalQuestions*100).toFixed(1) : 0}%`, 
+                 pageWidth/2, 38, { align: 'center' });
+        
+        yPosition = 55;
+        
+        // ========== RINGKASAN STATISTIK ==========
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text('RINGKASAN STATISTIK', margin, yPosition);
+        yPosition += 15;
+        
+        // Summary cards dalam grid 2x2
+        const cardWidth = (contentWidth - 10) / 2;
+        const cardHeight = 25;
+        
+        const summaryData = [
+            { label: 'Total Permainan', value: totalGames.toString(), color: [99, 102, 241] },
+            { label: 'Rata-rata Skor', value: `${avgScore.toFixed(1)}%`, color: [16, 185, 129] },
+            { label: 'Level Tertinggi', value: maxLevel.toString(), color: [245, 158, 11] },
+            { label: 'Total Jawaban Benar', value: `${totalCorrect}/${totalQuestions}`, color: [239, 68, 68] }
+        ];
+        
+        for (let i = 0; i < summaryData.length; i++) {
+            const row = Math.floor(i / 2);
+            const col = i % 2;
+            const x = margin + (col * (cardWidth + 10));
+            const y = yPosition + (row * (cardHeight + 5));
+            
+            // Card background
+            doc.setFillColor(summaryData[i].color[0], summaryData[i].color[1], summaryData[i].color[2]);
+            doc.setDrawColor(summaryData[i].color[0], summaryData[i].color[1], summaryData[i].color[2]);
+            doc.rect(x, y, cardWidth, cardHeight, 'S');
+            
+            // Card content
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text(summaryData[i].label, x + 5, y + 8);
+            
+            doc.setFontSize(18);
+            doc.setTextColor(summaryData[i].color[0], summaryData[i].color[1], summaryData[i].color[2]);
+            doc.text(summaryData[i].value, x + 5, y + 18);
+        }
+        
+        yPosition += 60;
+        
+        // ========== DETAIL PER LEVEL ==========
+        levels.forEach((level, levelIndex) => {
+            yPosition = checkPageBreak(doc, yPosition, 40);
+            
+            // Header level
+            doc.setFillColor(79, 70, 229);
+            doc.rect(margin, yPosition - 5, contentWidth, 15, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`LEVEL ${level}`, margin + 5, yPosition + 5);
+            
+            // Statistik level
+            const levelQuestions = levelData[level];
+            const levelCorrect = levelQuestions.filter(q => q.isCorrect).length;
+            const levelTotal = levelQuestions.length;
+            const levelAccuracy = levelTotal > 0 ? (levelCorrect / levelTotal * 100).toFixed(1) : '0';
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`${levelCorrect}/${levelTotal} benar (${levelAccuracy}%)`, pageWidth - margin - 5, yPosition + 5, { align: 'right' });
+            
+            yPosition += 20;
+            
+            // Detail soal
+            levelQuestions.forEach((question, index) => {
+                const questionHeight = question.isCorrect ? 25 : 35;
+                yPosition = checkPageBreak(doc, yPosition, questionHeight);
+                
+                // Background soal
+                if (question.isCorrect) {
+                    doc.setFillColor(240, 253, 244); // Hijau muda
+                    doc.setDrawColor(34, 197, 94);   // Hijau border
+                } else {
+                    doc.setFillColor(254, 242, 242); // Merah muda
+                    doc.setDrawColor(239, 68, 68);   // Merah border
+                }
+                doc.rect(margin, yPosition, contentWidth, questionHeight, 'FD');
+
+                // Status dan nomor soal
+                doc.setTextColor(question.isCorrect ? 34 : 239, question.isCorrect ? 197 : 68, question.isCorrect ? 94 : 68);
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'bold');
+                doc.text(question.isCorrect ? '✓' : '✗', margin + 5, yPosition + 8);
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(13);
+                doc.text(`Soal #${question.questionNumber}`, margin + 15, yPosition + 8);
+                
+                doc.setTextColor(100, 116, 139);
+                doc.setFontSize(10);
+                doc.text(`${question.gameDate}`, pageWidth - margin - 5, yPosition + 8, { align: 'right' });
+                
+                // Jawaban user
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Jawaban Anda:', margin + 5, yPosition + 18);
+                
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(11);
+                addJapaneseText(doc, question.userAnswer, margin + 35, yPosition + 18, 11, contentWidth - 40);
+                
+                // Jawaban benar (jika salah)
+                if (!question.isCorrect) {
+                    doc.setTextColor(34, 197, 94);
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Jawaban Benar:', margin + 5, yPosition + 28);
+                    
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(11);
+                    addJapaneseText(doc, question.correctAnswer, margin + 35, yPosition + 28, 11, contentWidth - 40);
+                }
+                
+                yPosition += questionHeight + 5;
+            });
+            
+            yPosition += 10;
+        });
+        
+        // ========== FOOTER ==========
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            
+            // Footer line
+            doc.setDrawColor(226, 232, 240);
+            doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
+            
+            // Footer text
+            doc.setTextColor(100, 116, 139);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Quiz App © ${new Date().getFullYear()}`, margin, pageHeight - 8);
+            doc.text(`Halaman ${i} dari ${totalPages}`, pageWidth - margin, pageHeight - 8, { align: 'right' });
+        }
+        
+        // Save PDF
+        const fileName = `Laporan-Statistik-Kuis-${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(fileName);
+        
+        // Success notification
+        Swal.fire({
+            title: 'Berhasil!',
+            text: 'Laporan statistik telah diekspor sebagai PDF',
+            icon: 'success',
+            timer: 3000,
+            showConfirmButton: false
+        });
+        
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        Swal.fire({
+            title: 'Error!',
+            text: 'Terjadi kesalahan saat membuat PDF: ' + error.message,
+            icon: 'error'
+        });
+    }
+}
+            // Method untuk menambah data dari game (dipanggil dari halaman game)
+            static addGameResult(gameData) {
+                const statistics = new QuizStatistics();
+                statistics.addGameResult(gameData);
+            }
+        }
+
+        // Inisialisasi halaman statistik
+        document.addEventListener('DOMContentLoaded', () => {
+            window.quizStats = new QuizStatistics();
+        });
+
+        // Fungsi untuk menambah data statistik (dapat dipanggil dari halaman lain)
+        function addQuizStatistic(gameData) {
+            const existingData = JSON.parse(localStorage.getItem('quizStatistics') || '[]');
+            
+            const gameResult = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                level: gameData.level,
+                totalQuestions: gameData.totalQuestions,
+                correctAnswers: gameData.correctAnswers,
+                score: gameData.score,
+                timeTaken: gameData.timeTaken || 0,
+                details: gameData.details || []
+            };
+            
+            existingData.unshift(gameResult);
+            localStorage.setItem('quizStatistics', JSON.stringify(existingData));
+        }
+
+        // Expose fungsi untuk digunakan dari halaman lain
+        window.addQuizStatistic = addQuizStatistic;
+
+ </script>
+</body>
+
+</html>

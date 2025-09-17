@@ -1,0 +1,46 @@
+{
+ "level1": [
+  {
+ "fragments": ["Nomimono","o","kaimasu"],
+ "correctOrder": [0,1,2],
+ "clue": "partikel o untuk kata kerja"
+},
+{
+ "fragments": ["Ichiba","de","onigiri","o","kaimasu"],
+ "correctOrder": [0,1,2,3,4],
+ "clue": "partikel de untuk tempat dan partikel o untuk kata kerja"
+},
+{
+ "fragments": ["Suppaa","de","hon","o","kaimasu"],
+ "correctOrder": [0,1,2,4],
+ "clue": "partikel de untuk tempat dan partikel o untuk kata kerja"
+},
+{
+ "fragments": ["Tomodachi","to","keeki","o","kaimasu"],
+ "correctOrder": [0,1,2,3,4],
+ "clue": "partikel to untuk mengikut sertakan subjek dalam kegiatan"
+},
+{
+ "fragments": ["Moru","de","kaimasu"],
+ "correctOrder": [0,1,2],
+ "clue": "Pertanyaan : Doko de kaimasuka?"
+},
+{
+ "fragments": ["Onigiri","o","kaimasu"],
+ "correctOrder": [0,1,2],
+ "clue": "Pertanyaan : Supaa de nani o kaimasuka? "
+}
+],
+ "level2": [
+    {
+ "fragments": ["ichiman","gosen","rupia","desu"],
+ "correctOrder": [0,1,2,3],
+ "clue": "Pertanyaan : Keeki wa ikura desuka?"
+},
+{
+ "fragments": ["Noto","wa","niman","sanzen","rupia","desu"],
+ "correctOrder": [0,1,2,3,4,5],
+ "clue": "Pertanyaan : Supaa de noto wa ikura desuka?"
+}
+ ]
+}

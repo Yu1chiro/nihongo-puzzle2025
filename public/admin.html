@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Leaderboard Nilai Siswa</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        /* Optimasi scrollbar untuk browser Webkit (Chrome, Safari) */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937; /* bg-gray-800 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563; /* bg-gray-600 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280; /* bg-gray-500 */
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-gray-200 antialiased">
+
+    <div id="main-content" class="container mx-auto p-4 md:p-8 hidden">
+        
+        <header class="mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-emerald-400">
+                🏆 Leaderboard Nilai Siswa
+            </h1>
+            <p class="text-center text-gray-400 mt-2">Data diperbarui secara realtime dari database.</p>
+        </header>
+
+        <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-2xl ring-1 ring-white/10 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-700">
+                    <thead class="bg-gray-800">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-sky-300 uppercase tracking-wider">Peringkat</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-sky-300 uppercase tracking-wider">Nama</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-sky-300 uppercase tracking-wider hidden md:table-cell">Absen</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-sky-300 uppercase tracking-wider">Skor</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-sky-300 uppercase tracking-wider hidden md:table-cell">Jawaban Salah</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-sky-300 uppercase tracking-wider">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body" class="divide-y divide-gray-700">
+                        </tbody>
+                </table>
+            </div>
+            
+            <div id="loader" class="flex items-center justify-center p-16">
+                <svg class="animate-spin h-8 w-8 text-sky-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="ml-4 text-gray-400">Memuat data...</p>
+            </div>
+            
+            <div id="empty-state" class="hidden text-center p-16">
+                <p class="text-gray-500">Belum ada data nilai yang masuk.</p>
+            </div>
+        </div>
+
+    </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- KONFIGURASI FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBmTt3egck8X7fBtN4efqqnaExp0aZzV1I",
+            authDomain: "yuii-database.firebaseapp.com",
+            databaseURL: "https://yuii-database-default-rtdb.firebaseio.com",
+            projectId: "yuii-database",
+            storageBucket: "yuii-database.appspot.com",
+            messagingSenderId: "981101790733",
+            appId: "1:981101790733:web:03017e8c35c8edb40c3744",
+            measurementId: "G-E4JPP7EX70"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const scoresRef = database.ref('nilai-siswa');
+        // Referensi ke token admin di database
+        const tokenRef = database.ref('admin/access_token');
+
+        // --- DOM ELEMENTS ---
+        const mainContent = document.getElementById('main-content');
+        const leaderboardBody = document.getElementById('leaderboard-body');
+        const loader = document.getElementById('loader');
+        const emptyState = document.getElementById('empty-state');
+
+        // --- FUNGSI UTAMA ---
+
+        // Fungsi validasi token langsung ke database
+        async function promptForToken() {
+            const {
+                value: inputToken
+            } = await Swal.fire({
+                title: 'Akses Terbatas',
+                input: 'password',
+                inputLabel: 'Masukkan Token Akses Admin',
+                inputPlaceholder: '••••••',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                confirmButtonText: 'Login',
+                background: '#1f2937',
+                color: '#e5e7eb',
+                confirmButtonColor: '#0ea5e9',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Token tidak boleh kosong!'
+                    }
+                }
+            });
+
+            if (inputToken) {
+                // Ambil token yang benar dari Firebase
+                tokenRef.once('value', (snapshot) => {
+                    const correctToken = snapshot.val();
+
+                    // PERBAIKAN: Ubah kedua nilai menjadi String sebelum membandingkan
+                    if (String(inputToken) === String(correctToken)) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Akses Diberikan',
+                            showConfirmButton: false,
+                            timer: 1500,
+                            background: '#1f2937',
+                            color: '#e5e7eb'
+                        });
+                        mainContent.classList.remove('hidden');
+                        listenForDataChanges();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Token Salah!',
+                            text: 'Halaman akan dimuat ulang.',
+                            background: '#1f2937',
+                            color: '#e5e7eb',
+                            confirmButtonColor: '#ef4444',
+                        }).then(() => {
+                            // Muat ulang halaman jika token salah
+                            window.location.reload();
+                        });
+                    }
+                }).catch(error => {
+                     Swal.fire({
+                        icon: 'error',
+                        title: 'Error Database',
+                        text: 'Tidak dapat memvalidasi token. Coba lagi.',
+                        background: '#1f2937',
+                        color: '#e5e7eb',
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                });
+            }
+        }
+        
+        // --- FUNGSI LAINNYA ---
+        
+        function listenForDataChanges() {
+            loader.style.display = 'flex';
+            emptyState.style.display = 'none';
+            leaderboardBody.innerHTML = '';
+
+            scoresRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    const scoresArray = Object.keys(data).map(key => ({
+                        id: key,
+                        ...data[key]
+                    }));
+                    scoresArray.sort((a, b) => b.skor - a.skor);
+                    renderLeaderboard(scoresArray);
+                    loader.style.display = 'none';
+                    emptyState.style.display = 'none';
+                } else {
+                    loader.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    leaderboardBody.innerHTML = '';
+                }
+            });
+        }
+
+        function renderLeaderboard(scores) {
+                let html = '';
+                scores.forEach((score, index) => {
+                    const rank = index + 1;
+                    const timestamp = new Date(score.timestamp).toLocaleString('id-ID');
+                    
+                    // PERBAIKAN: Hitung jumlah jawaban salah
+                    // Jika field 'jawabanSalah' ada, ambil panjang array-nya, jika tidak, anggap 0.
+                    const salahCount = score.jawabanSalah ? score.jawabanSalah.length : 0;
+                    
+                    let rankBadgeColor = 'bg-gray-600';
+                    if (rank === 1) rankBadgeColor = 'bg-yellow-400 text-yellow-900 animate-pulse';
+                    if (rank === 2) rankBadgeColor = 'bg-slate-400 text-slate-900';
+                    if (rank === 3) rankBadgeColor = 'bg-orange-400 text-orange-900';
+
+                    html += `
+                        <tr class="hover:bg-gray-700/50 transition-colors duration-200">
+                            <td class="px-4 py-4 text-center">
+                                <span class="px-3 py-1 text-sm font-bold rounded-full ${rankBadgeColor}">${rank}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-semibold text-white">${score.nama || 'N/A'}</div>
+                                <div class="text-xs text-gray-400 md:hidden">Absen: ${score.absen || 'N/A'}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300 hidden md:table-cell">${score.absen || 'N/A'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <span class="text-lg font-bold text-emerald-400">${score.skor || '0'}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <span class="text-lg font-bold ${salahCount > 0 ? 'text-red-400' : 'text-gray-400'}">${salahCount}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm space-x-2">
+                                ${salahCount > 0 ? `
+                                <button data-id="${score.id}" class="detail-btn bg-sky-600/80 hover:bg-sky-600 text-white p-2 rounded-full shadow-lg transition-all duration-200 transform hover:scale-110" title="Lihat Detail Jawaban Salah">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                                ` : ''}
+                                
+                                <button data-id="${score.id}" data-name="${score.nama || 'Siswa ini'}" class="delete-btn bg-red-600/80 hover:bg-red-600 text-white p-2 rounded-full shadow-lg transition-all duration-200 transform hover:scale-110" title="Hapus Data">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                leaderboardBody.innerHTML = html;
+            }
+
+            // ### PERBAIKAN: MENAMBAHKAN FUNGSI BARU UNTUK DETAIL & HAPUS ###
+            leaderboardBody.addEventListener('click', (event) => {
+                const targetButton = event.target.closest('button');
+                if (!targetButton) return;
+
+                const scoreId = targetButton.dataset.id;
+
+                // Jika tombol detail yang diklik
+                if (targetButton.classList.contains('detail-btn')) {
+                    // Ambil data spesifik untuk ID ini sekali saja
+                    scoresRef.child(scoreId).once('value', (snapshot) => {
+                        const scoreData = snapshot.val();
+                        if (scoreData && scoreData.jawabanSalah) {
+                            // Buat konten HTML untuk modal
+                            let detailHtml = '<div class="text-left space-y-4">';
+                            scoreData.jawabanSalah.forEach((item, index) => {
+                                detailHtml += `
+                                    <div class="border-b border-gray-600 pb-2">
+                                        <p class="text-sm text-gray-400">Kesalahan #${index + 1}</p>
+                                        <p><strong class="text-green-400">Jawaban Benar:</strong> ${item.soal}</p>
+                                        <p><strong class="text-red-400">Jawaban Siswa:</strong> ${item.jawabanUser}</p>
+                                    </div>
+                                `;
+                            });
+                            detailHtml += '</div>';
+
+                            Swal.fire({
+                                title: `Detail Jawaban Salah: ${scoreData.nama}`,
+                                html: detailHtml,
+                                background: '#1f2937',
+                                color: '#e5e7eb',
+                                confirmButtonColor: '#0ea5e9',
+                            });
+                        }
+                    });
+                }
+                
+                // Jika tombol hapus yang diklik
+                if (targetButton.classList.contains('delete-btn')) {
+                    const studentName = targetButton.dataset.name;
+                    Swal.fire({
+                        title: 'Anda Yakin?',
+                        text: `Data nilai milik "${studentName}" akan dihapus permanen!`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: 'Ya, hapus!',
+                        cancelButtonText: 'Batal',
+                        background: '#1f2937',
+                        color: '#e5e7eb'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            scoresRef.child(scoreId).remove().then(() => {
+                                Swal.fire({
+                                    title: 'Terhapus!',
+                                    text: `Data ${studentName} berhasil dihapus.`,
+                                    icon: 'success',
+                                    background: '#1f2937',
+                                    color: '#e5e7eb',
+                                    timer: 2000,
+                                    showConfirmButton: false,
+                                });
+                            });
+                        }
+                    });
+                }
+            });
+
+        // Memulai aplikasi dengan memeriksa token
+        promptForToken();
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+{
+ "level1": [
+  {
+ "fragments": ["は", "私", "です", "学生"],
+ "correctOrder": [1, 0, 3, 2],
+ "clue": "Gunakan pola [私 + は + kata benda + です] untuk memperkenalkan diri."
+},
+{
+ "fragments": ["あつい", "今日", "ですね", "は"],
+ "correctOrder": [1, 3, 0, 2],
+ "clue": "Gunakan pola [今日 + は + kata sifat + ですね] untuk mengomentari cuaca."
+},
+{
+ "fragments": ["おきます", "に", "毎日", "８時"],
+ "correctOrder": [2, 3, 1, 0],
+ "clue": "Gunakan pola [毎日 + waktu + に + kata kerja] untuk menyatakan kebiasaan harian."
+},
+{
+ "fragments": ["あります", "ほんや", "駅", "が", "の", "前", "に"],
+ "correctOrder": [2, 4, 5, 6, 1, 3, 0],
+ "clue": "Gunakan pola [場所 + の + 前 + に + benda + が + あります] untuk menyatakan keberadaan."
+},
+{
+ "fragments": ["行きます", "に", "今月", "日本"],
+ "correctOrder": [2, 3, 1, 0],
+ "clue": "Gunakan pola [waktu + tempat + に + 行きます] untuk menyatakan rencana pergi."
+},
+{
+ "fragments": ["を", "見ました", "友達", "映画", "昨日", "と"],
+ "correctOrder": [4, 2, 5, 3, 0, 1],
+ "clue": "Gunakan pola [waktu + orang + と + benda + を + 見ました] untuk menyatakan aktivitas masa lalu."
+},
+{
+ "fragments": ["面白い", "この", "です", "は", "本"],
+ "correctOrder": [1, 4, 3, 0, 2],
+ "clue": "Gunakan pola [この + kata benda + は + kata sifat + です] untuk mendeskripsikan sesuatu."
+},
+{
+ "fragments": ["ですか", "は", "どこ", "すみません", "トイレ"],
+ "correctOrder": [3, 4, 1, 2, 0],
+ "clue": "Gunakan pola [すみません + benda + は + どこ + ですか] untuk menanyakan lokasi."
+},
+{
+ "fragments": ["勉強", "います", "を", "日本語", "して"],
+ "correctOrder": [3, 2, 0, 4, 1],
+ "clue": "Gunakan pola [benda + を + 勉強 + して + います] untuk menyatakan aktivitas berkelanjutan."
+},
+{
+ "fragments": ["思います", "雨", "と", "が", "ふる", "明日"],
+ "correctOrder": [5, 1, 3, 4, 2, 0],
+ "clue": "Gunakan pola [waktu + benda + が + kata kerja + と + 思います] untuk menyatakan pendapat."
+},
+{
+ "fragments": ["私", "は", "友達", "と", "海", "で","つり","を","します"],
+ "correctOrder": [0,1,2,3,4,5,6,7,8],
+ "clue": "私は～"
+}
+],
+"level2": [
+{
+  "fragments": ["三年", "日本", "来て", "に", "から", "になります"],
+  "correctOrder": [1, 3, 2, 4, 0, 5],
+  "clue": "Gunakan pola [tempat + に + 来て + から + durasi + になります] untuk menyatakan lamanya waktu sejak datang."
+},
+{
+  "fragments": ["です", "降り", "雨", "そう", "が"],
+  "correctOrder": [2, 4, 1, 3, 0],
+  "clue": "Gunakan pola [kata benda + が + kata kerja + そうです] untuk menyatakan prediksi berdasarkan tanda-tanda."
+},
+{
+  "fragments": ["なりません", "を", "しなければ", "宿題"],
+  "correctOrder": [3, 1, 2, 0],
+  "clue": "Gunakan pola [kata benda + を + しなければなりません] untuk menyatakan kewajiban."
+},
+{
+  "fragments": ["間に", "寝て", "しまいました", "映画", "見ている", "を"],
+  "correctOrder": [3, 5, 4, 0, 1, 2],
+  "clue": "Gunakan pola [aktivitas + ている間に + hasil tak sengaja + てしまいました] untuk menyatakan sesuatu yang terjadi saat melakukan aktivitas lain."
+},
+{
+  "fragments": ["旅行", "お金", "ない", "ので", "できません", "が"],
+  "correctOrder": [1, 5, 2, 3, 0, 4],
+  "clue": "Gunakan pola [alasan + ので + hasil + できません] untuk menyatakan ketidakmampuan karena alasan tertentu."
+},
+{
+  "fragments": ["辛すぎて", "料理", "食べられません", "この", "は"],
+  "correctOrder": [3, 1, 4, 0, 2],
+  "clue": "Gunakan pola [この + kata benda + は + kata sifat + すぎて + できません] untuk menyatakan sesuatu berlebihan sehingga tidak bisa dilakukan."
+},
+{
+  "fragments": ["優しい", "し", "彼", "いい", "頭が", "です", "は"],
+  "correctOrder": [2, 6, 4, 3, 1, 0, 5],
+  "clue": "Gunakan pola [subjek + は + sifat1 + し + sifat2 + です] untuk menyebutkan dua sifat positif."
+},
+{
+  "fragments": ["手伝います", "時間", "あったら", "もし", "が"],
+  "correctOrder": [3, 1, 4, 2, 0],
+  "clue": "Gunakan pola [もし + kondisi + あったら + hasil] untuk menyatakan kondisi hipotetis."
+},
+{
+  "fragments": ["友達", "もらいました", "プレゼント", "を", "に"],
+  "correctOrder": [0, 4, 2, 3, 1],
+  "clue": "Gunakan pola [orang + に + benda + を + もらいました] untuk menyatakan menerima sesuatu dari seseorang."
+},
+{
+  "fragments": ["下がりません", "でも", "薬", "飲んで", "熱", "を", "が"],
+  "correctOrder": [2, 5, 3, 1, 4, 6, 0],
+  "clue": "Gunakan pola [obat + を + 飲んで + も + gejala + が + 下がりません] untuk menyatakan meskipun sudah minum obat tetapi tidak sembuh."
+}
+]
+,
+ "level3": [
+   {
+  "fragments": ["性格", "優秀", "彼", "上に", "いい", "も", "は", "である"],
+  "correctOrder": [2, 6, 1, 7, 3, 0, 5, 4],
+  "clue": "Gunakan pola [subjek + は + sifat1 + である上に + sifat2 + もいい] untuk menyatakan dua keunggulan sekaligus."
+},
+{
+  "fragments": ["手伝って", "忙しい", "にもかかわらず", "くれた"],
+  "correctOrder": [1, 2, 0, 3],
+  "clue": "Gunakan pola [kata sifat + にもかかわらず + tindakan baik] untuk menyatakan kontras yang menguntungkan."
+},
+{
+  "fragments": ["試合", "行われた", "雨", "は", "にもかかわらず"],
+  "correctOrder": [2, 4, 0, 3, 1],
+  "clue": "Gunakan pola [hambatan + にもかかわらず + kegiatan + は + 行われた] untuk menyatakan kegiatan tetap berlangsung meski ada hambatan."
+},
+{
+  "fragments": ["するほど", "勉強", "すれば", "難しく", "なる"],
+  "correctOrder": [1, 2, 0, 3, 4],
+  "clue": "Gunakan pola [aktivitas + すればするほど + perubahan + なる] untuk menyatakan perubahan yang sebanding dengan usaha."
+},
+{
+  "fragments": ["日本語", "ように", "できる", "なりたい", "が"],
+  "correctOrder": [0, 4, 2, 1, 3],
+  "clue": "Gunakan pola [bahasa + ができるようになりたい] untuk menyatakan keinginan menguasai kemampuan."
+},
+{
+  "fragments": ["医者", "彼女", "なる", "つもり", "は", "です"],
+  "correctOrder": [1, 4, 0, 2, 3, 5],
+  "clue": "Gunakan pola [subjek + は + profesi + になるつもりです] untuk menyatakan rencana karir."
+},
+{
+  "fragments": ["ため", "電車", "遅刻", "遅れた", "した", "が"],
+  "correctOrder": [1, 5, 3, 0, 2, 4],
+  "clue": "Gunakan pola [sebab + が + 遅れた + ため + akibat + した] untuk menyatakan sebab-akibat."
+},
+{
+  "fragments": ["働いている", "お金", "貯める", "ために", "を"],
+  "correctOrder": [1, 4, 2, 3, 0],
+  "clue": "Gunakan pola [benda + を + tujuan + ために + 働いている] untuk menyatakan tujuan bekerja."
+},
+{
+  "fragments": ["らしい", "風邪", "引いた", "を"],
+  "correctOrder": [1, 3, 2, 0],
+  "clue": "Gunakan pola [penyakit + を + 引いた + らしい] untuk menyatakan dugaan tentang kondisi kesehatan."
+},
+{
+  "fragments": ["会議", "始まった", "です", "ところ", "が"],
+  "correctOrder": [0, 4, 1, 3, 2],
+  "clue": "Gunakan pola [kegiatan + が + 始まった + ところです] untuk menyatakan sesuatu baru saja dimulai."
+}
+]
+
+}

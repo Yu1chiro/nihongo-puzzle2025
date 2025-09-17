@@ -1,0 +1,75 @@
+{
+ "level1": [
+  {
+ "fragments": ["Terebi", "wo", "minaide", "kudasai"],
+ "correctOrder": [0,1,2,3],
+ "clue": "ingat pola"
+},
+  {
+ "fragments": ["gakkou","de","Gemu","wo","shinaide","kudasai"],
+ "correctOrder": [0,1,2,3,4,5],
+ "clue": "ingat pola"
+},
+  {
+ "fragments": ["watashi","no","shashin","wa","minaide","kudasai"],
+ "correctOrder": [0,1,2,3,4,5],
+ "clue": "ingat pola"
+}
+
+],
+ "level2": [
+  {
+ "fragments": ["Sushi", "wo", "tabeta", "koto", "ga", "arimasu"],
+ "correctOrder": [0,1,2,3,4,5],
+ "clue": "ingat pola"
+},
+  {
+ "fragments": ["Depato", "de", "fuku", "wo", "katta", "koto", "ga", "arimasu"],
+ "correctOrder": [0,1,2,3,4,5,6,7],
+ "clue": "ingat pola"
+},
+{
+ "fragments": ["Nihon", "e", "itta", "koto", "ga", "arimasu"],
+ "correctOrder": [0,1,2,3,4,5],
+ "clue": "ingat pola"
+},
+{
+ "fragments": ["Karaoke", "de", "utatta", "koto", "ga", "arimasu"],
+ "correctOrder": [0,1,2,3,4,5],
+ "clue": "ingat pola"
+},
+{
+ "fragments": ["Sakana", "wo", "tsutta", "koto", "ga", "arimasu"],
+ "correctOrder": [0,1,2,3,4,5],
+ "clue": "ingat pola"
+},
+{
+ "fragments": ["Ringo", "wo", "tabeta", "koto", "ga", "arimasu"],
+ "correctOrder": [0,1,2,3,4,5],
+ "clue": "ingat pola"
+},
+{
+ "fragments": ["Eiga", "wo", "mita", "koto", "ga", "arimasu"],
+ "correctOrder": [0,1,2,3,4,5],
+ "clue": "ingat pola"
+},
+{
+ "fragments": ["Kouen", "de", "asonda", "koto", "ga", "arimasu"],
+ "correctOrder": [0,1,2,3,4,5],
+ "clue": "ingat pola"
+},
+{
+ "fragments": ["Yama", "ni", "nobotta", "koto", "ga", "arimasu"],
+ "correctOrder": [0,1,2,3,4,5],
+ "clue": "ingat pola"
+},
+{
+ "fragments": ["Umi", "de", "oyoida", "koto", "ga", "arimasu"],
+ "correctOrder": [0,1,2,3,4,5],
+ "clue": "ingat pola"
+}
+
+
+]
+
+}
