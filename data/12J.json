@@ -12,7 +12,7 @@
 },
 {
  "fragments": ["Suppaa","de","hon","o","kaimasu"],
- "correctOrder": [0,1,2,4],
+ "correctOrder": [0,1,2,3,4],
  "clue": "partikel de untuk tempat dan partikel o untuk kata kerja"
 },
 {
@@ -41,6 +41,12 @@
  "fragments": ["Noto","wa","niman","sanzen","rupia","desu"],
  "correctOrder": [0,1,2,3,4,5],
  "clue": "Pertanyaan : Supaa de noto wa ikura desuka?"
+},
+{
+ "fragments": ["Nomimono","wa","gozen","rupia","desu"],
+ "correctOrder": [0,1,2,3,4],
+ "clue": "Pertanyaan : Konbini de nomimono wa ikura desuka?"
 }
+
  ]
 }
