@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Leaderboard Nilai Siswa</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-gray-200 antialiased">
+
+    <div id="main-content" class="container mx-auto p-4 md:p-8">
+
+        <header class="mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
+            <h1
+                class="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-emerald-400 text-center md:text-left">
+                🏆 Leaderboard Nilai Siswa
+            </h1>
+
+            <div class="flex flex-col sm:flex-row items-center gap-4">
+                <div>
+                    <label for="class-selector" class="text-sm font-medium text-gray-400 mr-2">Tampilkan Kelas:</label>
+                    <select id="class-selector"
+                        class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 p-2.5">
+                        <option selected value="">-- Pilih Kelas --</option>
+                        <option value="XII-H">XII.H</option>
+                        <option value="XII-I">XII.I</option>
+                        <option value="XII-J">XII.J</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button id="download-excel-btn"
+                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path
+                                d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
+                            <path
+                                d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
+                        </svg>
+                        Download
+                    </button>
+                    <button id="delete-all-btn"
+                        class="bg-rose-800 hover:bg-rose-900 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M8.75 1A2.75 2.75 0 006 3.75V4.5h8V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4.5A1.25 1.25 0 0111.25 3h.001A1.25 1.25 0 0112.5 4.25V5.5h-5V4.25A1.25 1.25 0 018.75 3h.001A1.25 1.25 0 0110 4.5z"
+                                clip-rule="evenodd" />
+                            <path
+                                d="M5.5 5.5A.75.75 0 004.75 6v1.25a.75.75 0 001.5 0V6A.75.75 0 005.5 5.5zM14.5 5.5a.75.75 0 00-.75.75v1.25a.75.75 0 001.5 0V6a.75.75 0 00-.75-.75zM3 9.75A.75.75 0 002.25 9v5.25c0 .966.784 1.75 1.75 1.75h12a1.75 1.75 0 001.75-1.75V9a.75.75 0 00-1.5 0v5.25a.25.25 0 01-.25.25H4a.25.25 0 01-.25-.25V9a.75.75 0 00-.75-.75z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Hapus
+                    </button>
+                </div>
+            </div>
+        </header>
+        <div id="select-class-prompt" class="hidden text-center p-16">
+            <p class="text-gray-500">☝️ Silakan pilih kelas di atas untuk menampilkan data.</p>
+        </div>
+
+        <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-2xl ring-1 ring-white/10 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-700">
+                    <thead class="bg-gray-800">
+                        <tr>
+                            <th scope="col"
+                                class="px-4 py-3 text-center text-xs font-medium text-sky-300 uppercase tracking-wider">
+                                Peringkat</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-sky-300 uppercase tracking-wider">
+                                Nama</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-sky-300 uppercase tracking-wider hidden md:table-cell">
+                                Absen</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-sky-300 uppercase tracking-wider">
+                                Skor</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-sky-300 uppercase tracking-wider hidden md:table-cell">
+                                Jawaban Salah</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-sky-300 uppercase tracking-wider">
+                                Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body" class="divide-y divide-gray-700">
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="loader" class="flex items-center justify-center p-16">
+                <svg class="animate-spin h-8 w-8 text-sky-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <p class="ml-4 text-gray-400">Memuat data...</p>
+            </div>
+
+            <div id="empty-state" class="hidden text-center p-16">
+                <p class="text-gray-500">Belum ada data nilai yang masuk.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- KONFIGURASI FIREBASE ---
+            const firebaseConfig = {
+                apiKey: "AIzaSyBmTt3egck8X7fBtN4efqqnaExp0aZzV1I",
+                authDomain: "yuii-database.firebaseapp.com",
+                databaseURL: "https://yuii-database-default-rtdb.firebaseio.com",
+                projectId: "yuii-database",
+                storageBucket: "yuii-database.appspot.com",
+                messagingSenderId: "981101790733",
+                appId: "1:981101790733:web:03017e8c35c8edb40c3744",
+                measurementId: "G-E4JPP7EX70"
+            };
+
+            firebase.initializeApp(firebaseConfig);
+            const database = firebase.database();
+            const scoresRef = database.ref('nilai-siswa');
+
+            // --- DOM ELEMENTS ---
+            const leaderboardBody = document.getElementById('leaderboard-body');
+            const loader = document.getElementById('loader');
+            const emptyState = document.getElementById('empty-state');
+            const selectClassPrompt = document.getElementById('select-class-prompt');
+            const classSelector = document.getElementById('class-selector');
+            const downloadBtn = document.getElementById('download-excel-btn');
+            const deleteAllBtn = document.getElementById('delete-all-btn');
+
+            // --- STATE MANAGEMENT ---
+            let allScoresData = [];
+            let currentClassRef = null;
+            let selectedClassName = '';
+
+            // --- FUNGSI-FUNGSI ---
+
+            /**
+             * Mengambil dan menampilkan data dari Firebase berdasarkan kelas yang dipilih.
+             * @param {string} kelas - Nama kelas (contoh: 'XII-H').
+             */
+            function listenForDataChanges(kelas) {
+                // Hentikan listener sebelumnya agar tidak ada duplikasi
+                if (currentClassRef) {
+                    currentClassRef.off('value');
+                }
+
+                // Reset tampilan dan state
+                leaderboardBody.innerHTML = '';
+                allScoresData = [];
+                selectedClassName = kelas;
+
+                if (!kelas) {
+                    // Jika tidak ada kelas yang dipilih, tampilkan prompt
+                    loader.style.display = 'none';
+                    emptyState.style.display = 'none';
+                    selectClassPrompt.style.display = 'block';
+                    return;
+                }
+
+                // Tampilkan loader saat data diambil
+                loader.style.display = 'flex';
+                emptyState.style.display = 'none';
+                selectClassPrompt.style.display = 'none';
+
+                const dbPath = `nilai-siswa-${kelas}`;
+                currentClassRef = database.ref(dbPath);
+
+                currentClassRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        const scoresArray = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+                        scoresArray.sort((a, b) => b.skor - a.skor);
+                        allScoresData = scoresArray; // Simpan data untuk di-download
+                        renderLeaderboard(scoresArray);
+                        loader.style.display = 'none';
+                    } else {
+                        // Jika data kosong, tampilkan empty state
+                        loader.style.display = 'none';
+                        emptyState.style.display = 'block';
+                    }
+                });
+            }
+
+            /**
+             * Merender data ke dalam tabel HTML.
+             * @param {Array} scores - Array berisi data skor siswa.
+             */
+            function renderLeaderboard(scores) {
+                let html = '';
+                scores.forEach((score, index) => {
+                    const rank = index + 1;
+                    const salahCount = score.jawabanSalah ? score.jawabanSalah.length : 0;
+                    let rankBadgeColor = 'bg-gray-600';
+                    if (rank === 1) rankBadgeColor = 'bg-yellow-400 text-yellow-900 animate-pulse';
+                    if (rank === 2) rankBadgeColor = 'bg-slate-400 text-slate-900';
+                    if (rank === 3) rankBadgeColor = 'bg-orange-400 text-orange-900';
+
+                    html += `
+                <tr class="hover:bg-gray-700/50 transition-colors duration-200">
+                    <td class="px-4 py-4 text-center"><span class="px-3 py-1 text-sm font-bold rounded-full ${rankBadgeColor}">${rank}</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-semibold text-white">${score.nama || 'N/A'}</div>
+                        <div class="text-xs text-gray-400 md:hidden">Absen: ${score.absen || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300 hidden text-center md:table-cell">${score.absen || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center"><span class="text-lg font-bold text-emerald-400">${score.skor || '0'}</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center hidden md:table-cell"><span class="text-lg font-bold ${salahCount > 0 ? 'text-red-400' : 'text-gray-400'}">${salahCount}</span></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm space-x-2">
+                        ${salahCount > 0 ? `<button data-id="${score.id}" class="detail-btn bg-sky-600/80 hover:bg-sky-600 text-white p-2 rounded-full shadow-lg" title="Lihat Detail"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>` : ''}
+                        <button data-id="${score.id}" data-name="${score.nama || 'Siswa ini'}" class="delete-btn bg-red-600/80 hover:bg-red-600 text-white p-2 rounded-full shadow-lg" title="Hapus Data"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
+                    </td>
+                </tr>`;
+                });
+                leaderboardBody.innerHTML = html;
+            }
+            function downloadDataAsExcel() {
+                if (allScoresData.length === 0) {
+                    Swal.fire({ icon: 'info', title: 'Data Kosong', text: `Pilih kelas yang ada datanya untuk di-download.`, background: '#1f2937', color: '#e5e7eb' });
+                    return;
+                }
+                const dataForExcel = allScoresData.map(item => ({
+                    'Nama Siswa': item.nama,
+                    'Nomor Absen': item.absen,
+                    'Skor': parseInt(item.skor),
+                    'Detail Jawaban Salah': item.jawabanSalah ? item.jawabanSalah.map(salah => `Soal: "${salah.soal}" | Jawaban: "${salah.jawabanUser}"`).join('; \n') : 'Tidak ada'
+                }));
+                const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+                worksheet['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 10 }, { wch: 100 }];
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Nilai Siswa');
+                XLSX.writeFile(workbook, `Laporan_Nilai_${selectedClassName}.xlsx`);
+            }
+
+            function handleDeleteAllData() {
+                if (!selectedClassName) {
+                    Swal.fire({ icon: 'error', title: 'Kelas Belum Dipilih', text: 'Pilih kelas yang datanya ingin dihapus.', background: '#1f2937', color: '#e5e7eb' });
+                    return;
+                }
+                Swal.fire({
+                    title: `Anda Yakin?`,
+                    html: `Ini akan menghapus <strong>SEMUA</strong> data nilai kelas <strong>${selectedClassName}</strong> secara permanen!`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e11d48',
+                    confirmButtonText: 'Ya, Hapus Semua!',
+                    background: '#1f2937', color: '#e5e7eb'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const dbPath = `nilai-siswa-${selectedClassName}`;
+                        database.ref(dbPath).remove()
+                            .then(() => Swal.fire({ title: 'Terhapus!', text: `Data kelas ${selectedClassName} berhasil dihapus.`, icon: 'success', background: '#1f2937', color: '#e5e7eb' }))
+                            .catch((error) => Swal.fire({ title: 'Gagal!', text: 'Terjadi kesalahan.', icon: 'error', background: '#1f2937', color: '#e5e7eb' }));
+                    }
+                });
+            }
+            classSelector.addEventListener('change', () => {
+                listenForDataChanges(classSelector.value);
+            });
+
+            downloadBtn.addEventListener('click', downloadDataAsExcel);
+            deleteAllBtn.addEventListener('click', handleDeleteAllData);
+
+            // Event listener untuk detail dan hapus per-item (delegasi event)
+            leaderboardBody.addEventListener('click', (event) => {
+                const targetButton = event.target.closest('button');
+                if (!targetButton) return;
+                const scoreId = targetButton.dataset.id;
+                const studentName = targetButton.dataset.name;
+
+                // Logika untuk tombol detail
+                if (targetButton.classList.contains('detail-btn')) {
+                    const scoreData = allScoresData.find(s => s.id === scoreId);
+                    if (scoreData && scoreData.jawabanSalah) {
+                        let detailHtml = '<div class="text-left space-y-4">';
+                        scoreData.jawabanSalah.forEach((item, index) => {
+                            detailHtml += `<div class="border-b border-gray-600 pb-2"><p class="text-sm text-gray-400">Kesalahan #${index + 1}</p><p><strong class="text-green-400">Jawaban Benar:</strong> ${item.soal}</p><p><strong class="text-red-400">Jawaban Siswa:</strong> ${item.jawabanUser}</p></div>`;
+                        });
+                        detailHtml += '</div>';
+                        Swal.fire({ title: `Detail Jawaban Salah: ${scoreData.nama}`, html: detailHtml, background: '#1f2937', color: '#e5e7eb', confirmButtonColor: '#0ea5e9' });
+                    }
+                }
+
+                // Logika untuk tombol hapus per-item
+                if (targetButton.classList.contains('delete-btn')) {
+                    Swal.fire({
+                        title: 'Anda Yakin?',
+                        text: `Data nilai milik "${studentName}" akan dihapus!`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        confirmButtonText: 'Ya, hapus!',
+                        background: '#1f2937', color: '#e5e7eb'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            currentClassRef.child(scoreId).remove(); // Hapus dari referensi kelas saat ini
+                        }
+                    });
+                }
+            });
+
+
+            // --- INISIALISASI ---
+            // Atur kondisi awal saat halaman pertama kali dimuat
+            listenForDataChanges('');
+        });
+    </script>
+</body>
+
+</html>
