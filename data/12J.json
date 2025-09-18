@@ -1,36 +1,5 @@
 {
- "level1": [
-  {
- "fragments": ["Nomimono","o","kaimasu"],
- "correctOrder": [0,1,2],
- "clue": "partikel o untuk kata kerja"
-},
-{
- "fragments": ["いちば","で","おにぎり","を","かいます"],
- "correctOrder": [0,1,2,3,4],
- "clue": "partikel de untuk tempat dan partikel o untuk kata kerja"
-},
-{
- "fragments": ["Suppaa","de","hon","o","kaimasu"],
- "correctOrder": [0,1,2,3,4],
- "clue": "partikel de untuk tempat dan partikel o untuk kata kerja"
-},
-{
- "fragments": ["ともだち","と","ケーキ","を","かいます"],
- "correctOrder": [0,1,2,3,4],
- "clue": "partikel to untuk mengikut sertakan subjek dalam kegiatan"
-},
-{
- "fragments": ["モール","で","かいます"],
- "correctOrder": [0,1,2],
- "clue": "Pertanyaan : Doko de kaimasuka?"
-},
-{
- "fragments": ["スーパー","で","おかし", "と", "のみもの", "を", "かいます"],
- "correctOrder": [0,1,2,3,4,5,6],
- "clue": "Pertanyaan : スーパーでなにをかいますか？"
-}
-],
+
  "level2": [
     {
  "fragments": ["ichiman","gosen","rupia","desu"],
@@ -38,17 +7,17 @@
  "clue": "Pertanyaan : ケーキはいくらですか？"
 },
 {
- "fragments": ["ノート","は","２まん","３ぜん","ルピア","です"],
+ "fragments": ["Nooto","wa","niman","sanzen","rupia","desu"],
  "correctOrder": [0,1,2,3,4,5],
  "clue": "Pertanyaan : Supaa de noto wa ikura desuka?"
 },
 {
- "fragments": ["のみもの","は","５ぜん","ルピア","です"],
+ "fragments": ["nomimono","wa","gozen","rupia","desu"],
  "correctOrder": [0,1,2,3,4],
  "clue": "Pertanyaan : Konbini de nomimono wa ikura desuka?"
 },
 {
- "fragments": ["これ", "は", "さんまん", "ごひゃく", "ルピア", "です"],
+ "fragments": ["kore", "wa", "sanman", "gohyaku", "rupia", "desu"],
  "correctOrder": [0,1,2,3,4,5],
  "clue": "Pertanyaan : Ini harganya 35.500 rupiah"
 }
